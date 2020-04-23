@@ -10,9 +10,21 @@ var moons = [];
 var backgroundItem;
 //=================================================================================================
 
+var myControls = new function(){
+    this.speedOfRotation = 0.5;
+    this.color = "#ffab17";
+};
+
+
 function updateCanvas() {
     myCanvas = document.getElementById( "barbarasCanvas" );
     ctx = myCanvas.getContext( "2d" );
+
+    var myGUI = new dat.GUI();
+    var scaleFolder = myGUI.addFolder('Solar system settings');
+    scaleFolder.addColor(myControls,'color');
+    scaleFolder.add(myControls,'speedOfRotation',-1.5, 1.5);
+    scaleFolder.open();
 
     ctx.fillStyle = backgroundColor;
     ctx.strokeStyle = 'rgba(0,153,255,0.4)';
@@ -252,8 +264,10 @@ function nextFrame() {
     ctx.fillStyle = backgroundColor;
     ctx.clearRect( 0, 0, myCanvas.width, myCanvas.height );
 
-    myAngle += 0.5;
+    myAngle += myControls.speedOfRotation;
     myAngle %= 360;
+
+    sun.Color = myControls.color;
 
     var maxRadius = objects[ 0 ].Radius;
     for ( let i = 1; i < objects.length; i ++ ) {
