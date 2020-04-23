@@ -4,15 +4,20 @@ var ctx;
 var backgroundColor = "#000000";
 var myCanvas, myFrameVar;
 var myAngle = 0;
-var obj, sun, mercury, venus, venusMoon, earth, mars, jupiter, saturn, uranus , neptune, plutone, planetoids;
+var obj, sun, mercury, venus, venusMoon, earth, mars, jupiter, saturn, uranus , neptune, plutone;
 var objects = [];
 var moons = [];
-var backgroundItem;
+var planetoid;
+var planetoids = [];
+var star;
+var stars = [];
 //=================================================================================================
 
 var myControls = new function(){
     this.speedOfRotation = 0.5;
     this.color = "#ffab17";
+    this.howManyStars = 1000;
+    this.howManyPlanetoids = 1000;
 };
 
 
@@ -24,6 +29,9 @@ function updateCanvas() {
     var scaleFolder = myGUI.addFolder('Solar system settings');
     scaleFolder.addColor(myControls,'color');
     scaleFolder.add(myControls,'speedOfRotation',-1.5, 1.5);
+    scaleFolder.add(myControls,'howManyStars', 0, 5000);
+    scaleFolder.add(myControls,'howManyPlanetoids', 0, 2000);
+
     scaleFolder.open();
 
     ctx.fillStyle = backgroundColor;
@@ -35,23 +43,23 @@ function updateCanvas() {
 
     //--------------------------------------------
 
-    for (let i = 0; i < 1000; i++) {
-        backgroundItem = new Star();
-        backgroundItem.Color = '#ffffff';
-        backgroundItem.Radius = 0.5;
-        backgroundItem.setReferencePoint(myCanvas.width*Math.random(), myCanvas.height*Math.random());
-        backgroundItem.Alpha = Math.floor( Math.random() * 360 );
-        objects.push(backgroundItem);
+    for (let i = 0; i < 5000; i++) {
+        star = new Star();
+        star.Color = '#ffffff';
+        star.Radius = 0.5;
+        star.setReferencePoint(myCanvas.width*Math.random(), myCanvas.height*Math.random());
+        star.Alpha = Math.floor( Math.random() * 360 );
+        stars.push(star);
     }
 
-    for (let i = 0; i < 1000; i++) {
-        planetoids = new Planetoid();
-        planetoids.Color = '#efbf8c';
-        planetoids.Radius = 590 + 100*Math.random();
-        planetoids.planetRadius = 5;
-        planetoids.setReferencePoint(myCanvas.width/2, myCanvas.height/2);
-        planetoids.Alpha = Math.floor( Math.random() * 360 );
-        objects.push( planetoids );
+    for (let i = 0; i < 2000; i++) {
+        planetoid = new Planetoid();
+        planetoid.Color = '#efbf8c';
+        planetoid.Radius = 590 + 100*Math.random();
+        planetoid.planetRadius = 5;
+        planetoid.setReferencePoint(myCanvas.width/2, myCanvas.height/2);
+        planetoid.Alpha = Math.floor( Math.random() * 360 );
+        planetoids.push( planetoid );
     }
 
 
@@ -274,9 +282,29 @@ function nextFrame() {
         if ( objects[ i ].Radius > maxRadius ) maxRadius = objects[ i ].Radius;
     }
 
-    //TODO księżyce muszą mieć porządny i osobny transform
-    // będzie tablica obiektów działająca dla gwiazdy, zwykłych planet i planet z księżycami
-
+    //start in background
+    for ( let i = 0; i < myControls.howManyStars; i ++ ) {
+        obj = stars[ i ];
+        let sinA = Math.sin( ( myAngle + obj.Alpha ) * Math.PI / 180.0 * maxRadius / obj.Radius );
+        let cosA = Math.cos( ( myAngle + obj.Alpha ) * Math.PI / 180.0 * maxRadius / obj.Radius );
+        ctx.save();
+        ctx.transform( cosA, sinA, -sinA, cosA, obj.X0, obj.Y0 );
+        ctx.scale(1.5,1.5);
+        obj.display();
+        ctx.restore();
+    }
+    //planetoids
+    for ( let i = 0; i < myControls.howManyPlanetoids; i ++ ) {
+        obj = planetoids[ i ];
+        let sinA = Math.sin( ( myAngle + obj.Alpha ) * Math.PI / 180.0 * maxRadius / obj.Radius );
+        let cosA = Math.cos( ( myAngle + obj.Alpha ) * Math.PI / 180.0 * maxRadius / obj.Radius );
+        ctx.save();
+        ctx.transform( cosA, sinA, -sinA, cosA, obj.X0, obj.Y0 );
+        ctx.scale(1.5,1.5);
+        obj.display();
+        ctx.restore();
+    }
+    //planets
     for ( let i = 0; i < objects.length; i ++ ) {
         obj = objects[ i ];
         let sinA = Math.sin( ( myAngle + obj.Alpha ) * Math.PI / 180.0 * maxRadius / obj.Radius );
@@ -287,6 +315,7 @@ function nextFrame() {
         obj.display();
         ctx.restore();
     }
+    //moons
     for ( let i = 0; i < moons.length; i ++ ) {
         obj = moons[ i ];
         let sinA = Math.sin( ( myAngle + obj.Alpha ) * Math.PI / 180.0 * maxRadius / obj.Radius );
